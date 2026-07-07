@@ -1,0 +1,58 @@
+name: Renovate (self-hosted)
+
+# Optional "fully-in-your-repo" runner for the pilot — lets you watch Renovate's
+# decisions in the Actions log. The simplest path is the hosted Mend Renovate app
+# (see README) which needs NO workflow and NO token. Use this only if you want to
+# self-host the run.
+#
+# Prerequisites:
+#   - A repo secret RENOVATE_TOKEN: a classic PAT with `repo` scope. Keep the repo's
+#     Dependabot alerts enabled so Renovate's vulnerability path can read them.
+#     (You may fall back to GITHUB_TOKEN for a quick try, but it cannot read
+#      Dependabot alerts, so the security-fix behavior won't trigger.)
+#   - renovate.json in the repo root (already present).
+#
+# IMPORTANT: pin the action to the latest release tag from
+#   https://github.com/renovatebot/github-action/releases
+# (the tag below may be behind by the time you run this).
+
+on:
+  workflow_dispatch:
+    inputs:
+      dryRun:
+        description: Dry run (log only — raise NO PRs)
+        type: boolean
+        default: true
+      logLevel:
+        description: Log level
+        type: choice
+        options: [info, debug]
+        default: debug
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: renovate
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Renovate
+        uses: renovatebot/github-action@v41.0.6
+        with:
+          configurationFile: renovate.json
+          token: ${{ secrets.RENOVATE_TOKEN || secrets.GITHUB_TOKEN }}
+        env:
+          RENOVATE_REPOSITORIES: '["${{ github.repository }}"]'
+          # dryRun=full on manual runs when the box is ticked; empty (real run) otherwise
+          RENOVATE_DRY_RUN: ${{ (github.event_name == 'workflow_dispatch' && inputs.dryRun) && 'full' || '' }}
+          LOG_LEVEL: ${{ github.event_name == 'workflow_dispatch' && inputs.logLevel || 'debug' }}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "dependencyDashboard": true,
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"]
+  },
+  "packageRules": [
+    {
+      "description": "Frozen major — Kendo Angular UI components (v24).",
+      "matchPackageNames": ["@progress/kendo-angular-*"],
+      "allowedVersions": "<25"
+    },
+    {
+      "description": "Frozen major — Kendo low-level libs on v1 (data-query, drawing, licensing).",
+      "matchPackageNames": [
+        "@progress/kendo-data-query",
+        "@progress/kendo-drawing",
+        "@progress/kendo-licensing"
+      ],
+      "allowedVersions": "<2"
+    },
+    {
+      "description": "Frozen major — Kendo default theme (v14).",
+      "matchPackageNames": ["@progress/kendo-theme-default"],
+      "allowedVersions": "<15"
+    },
+    {
+      "description": "Frozen major — Angular runtime + build toolchain + Native Federation (shared with the host via Module Federation: shareAll singleton strictVersion; a major mismatch crashes host/remote). Kept last: Renovate's allowedVersions rules interact by order, and the broadest cap must win. In-major minor/patch (incl. security) updates still flow; a CVE whose only fix is a forbidden major is left for a human.",
+      "matchPackageNames": [
+        "@angular/*",
+        "@angular-devkit/*",
+        "@angular-architects/native-federation"
+      ],
+      "allowedVersions": "<21"
+    }
+  ]
+}

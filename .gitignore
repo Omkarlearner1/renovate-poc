@@ -1,0 +1,6 @@
+# node_modules is intentionally NOT committed — Renovate and Dependabot read
+# package.json + package-lock.json directly, so no install is needed for the pilot.
+node_modules/
+npm-debug.log
+.DS_Store
+Thumbs.db
