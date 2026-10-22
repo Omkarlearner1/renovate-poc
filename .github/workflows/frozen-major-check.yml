@@ -1,0 +1,29 @@
+name: Frozen-major check
+
+# Merge gate for every PR into main — Dependabot's, vulnfix's, or a human's.
+# Fails if any package pinned in vulnfix.config.json moved to a new major, in
+# package.json or in what package-lock.json actually installs. Make this a
+# required status check in branch protection.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  frozen-majors:
+    runs-on: ubuntu-latest
+    steps:
+      # For enterprise use, pin actions to a full commit SHA instead of a tag.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Block changes that move a frozen package to a new major
+        run: node tools/vulnfix/bin/vulnfix.js check --base "origin/${{ github.base_ref }}"

@@ -1,0 +1,74 @@
+name: vulnfix overrides
+
+# Pins vulnerable TRANSITIVE dependencies with npm "overrides" — the gap that
+# Dependabot security updates can't fill. Direct dependencies are left to
+# Dependabot. Runs lockfile-only: nothing is installed into node_modules and no
+# package code executes on the runner.
+#
+# Requires: Settings -> Actions -> General -> Workflow permissions ->
+#   "Allow GitHub Actions to create and approve pull requests".
+# Note: PRs opened with GITHUB_TOKEN don't trigger other workflows, so the
+# frozen-major check also runs inside this job before the PR is opened.
+
+on:
+  schedule:
+    - cron: '0 5 * * 1' # Mondays 05:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: vulnfix-overrides
+  cancel-in-progress: false
+
+jobs:
+  overrides:
+    runs-on: ubuntu-latest
+    steps:
+      # For enterprise use, pin actions to a full commit SHA instead of a tag.
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Plan and apply transitive overrides
+        id: fix
+        run: |
+          set +e
+          node tools/vulnfix/bin/vulnfix.js fix --overrides-only --lockfile-only --yes \
+            --out "$RUNNER_TEMP/vulnfix-report.md"
+          code=$?
+          set -e
+          # 0 = clean, 1 = some findings still need a human (still worth a PR), 2 = error
+          if [ "$code" -eq 2 ]; then exit 1; fi
+          if git diff --quiet -- package.json package-lock.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No transitive overrides needed."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify no frozen package moved to a new major
+        if: steps.fix.outputs.changed == 'true'
+        run: node tools/vulnfix/bin/vulnfix.js check --base HEAD
+
+      - name: Open pull request
+        if: steps.fix.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch="vulnfix/overrides-$(date -u +%Y%m%d-%H%M%S)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add package.json package-lock.json
+          git commit -m "fix(deps): pin vulnerable transitive dependencies via overrides"
+          git push -u origin "$branch"
+          gh label create security --color B60205 --description "Security fix" --force
+          gh pr create --draft --base main --head "$branch" \
+            --title "fix(deps): pin vulnerable transitive dependencies" \
+            --body-file "$RUNNER_TEMP/vulnfix-report.md" \
+            --label security

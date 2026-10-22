@@ -1,0 +1,31 @@
+# Dependabot fixes DIRECT dependencies with security updates; vulnfix
+# (.github/workflows/vulnfix-overrides.yml) pins vulnerable TRANSITIVE
+# dependencies, which Dependabot can't do.
+#
+# open-pull-requests-limit: 0 turns off routine version-update PRs. Security
+# updates are not affected by it — enable them in Settings -> Code security ->
+# Dependabot security updates.
+#
+# The ignore rules also govern security PRs: a CVE whose only fix is a frozen
+# major raises no PR and the alert stays open for a human. Module Federation
+# shares these packages with the host (shareAll singleton, strictVersion), so a
+# major mismatch crashes host and remote. The frozen-major-check workflow
+# enforces the same policy on every PR as a backstop.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 0
+    labels:
+      - "security"
+    ignore:
+      - dependency-name: "@angular/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@angular-devkit/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@angular-architects/native-federation"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@progress/kendo-*"
+        update-types: ["version-update:semver-major"]

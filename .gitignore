@@ -1,4 +1,4 @@
-# node_modules is intentionally NOT committed — Renovate and Dependabot read
+# node_modules is intentionally NOT committed — Dependabot and vulnfix read
 # package.json + package-lock.json directly, so no install is needed for the pilot.
 node_modules/
 npm-debug.log

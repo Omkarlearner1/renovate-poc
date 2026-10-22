@@ -1,0 +1,22 @@
+{
+  "frozen": [
+    {
+      "pattern": "@angular/*",
+      "reason": "shared with the host app at runtime via Module Federation (shareAll singleton, strictVersion) — a major mismatch crashes host and remote"
+    },
+    {
+      "pattern": "@angular-devkit/*",
+      "reason": "locked to the Angular major of the build toolchain"
+    },
+    {
+      "pattern": "@angular-architects/native-federation",
+      "reason": "the federation runtime itself — its major must match the host"
+    },
+    {
+      "pattern": "@progress/kendo-*",
+      "reason": "Kendo UI is peer-locked to the Angular major and shared with the host"
+    }
+  ],
+  "allowDevMajor": true,
+  "buildCommand": null
+}

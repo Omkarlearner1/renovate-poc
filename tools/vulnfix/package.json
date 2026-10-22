@@ -1,0 +1,29 @@
+{
+  "name": "vulnfix",
+  "version": "0.1.0",
+  "description": "Local CVE remediation for npm projects. Deterministic fixes, AI only for explaining what can't be fixed.",
+  "bin": {
+    "vulnfix": "./bin/vulnfix.js"
+  },
+  "main": "lib/index.js",
+  "files": [
+    "bin/",
+    "lib/",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test test/core.test.js test/check.test.js",
+    "test:scenarios": "node test/scenarios.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "security",
+    "cve",
+    "npm-audit",
+    "remediation"
+  ],
+  "license": "MIT",
+  "private": true
+}
